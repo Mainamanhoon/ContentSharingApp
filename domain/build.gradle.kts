@@ -43,7 +43,10 @@ dependencies {
     implementation(libs.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
+    implementation(libs.play.services.tasks)
     androidTestImplementation(libs.androidx.espresso.core)
+
+
 
     implementation("com.google.dagger:hilt-android:2.51.1") {
         exclude(group = "com.intellij", module = "annotations")
@@ -51,6 +54,13 @@ dependencies {
     kapt("com.google.dagger:hilt-android-compiler:2.51.1") {
         exclude(group = "com.intellij", module = "annotations")
     }
+    // Make sure you have the Firebase BoM (Bill of Materials)
+    implementation(platform("com.google.firebase:firebase-bom:32.3.1"))
+
+// Add the Firebase products you want to use WITHOUT specifying their versions
+    implementation("com.google.firebase:firebase-analytics-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+
 }
 
 kapt {

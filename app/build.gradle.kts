@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("kotlin-kapt")
+    id("com.google.dagger.hilt.android")
+    id("com.google.gms.google-services")
 
 
 }
@@ -55,9 +57,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.firebase.common.ktx)
-    implementation(libs.firebase.firestore.ktx)
-    testImplementation(libs.junit)
+     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -65,18 +65,28 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    //Custom Loader
+    implementation("com.airbnb.android:lottie:3.4.2")
+    implementation("com.airbnb.android:lottie-compose:6.3.0")
+
     // Hilt dependencies
-    implementation("com.google.dagger:hilt-android:2.51.1") {
-        exclude(group = "com.intellij", module = "annotations")
-    }
-    kapt("com.google.dagger:hilt-android-compiler:2.51.1") {
-        exclude(group = "com.intellij", module = "annotations")
-    }
+    implementation("com.google.dagger:hilt-android:2.51.1")
+    kapt("com.google.dagger:hilt-android-compiler:2.51.1")
+    // Hilt navigation for Compose
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.3")
 
+     implementation(platform("com.google.firebase:firebase-bom:32.3.1"))
 
+     implementation("com.google.firebase:firebase-analytics-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+
+    //for circular imageViews
+    implementation ("de.hdodenhof:circleimageview:3.1.0")
+
+    implementation("io.coil-kt:coil-compose:2.5.0")
 }
 kapt {
     correctErrorTypes = true

@@ -39,6 +39,8 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+    implementation(libs.androidx.lifecycle.viewmodel.android)
+    implementation(libs.play.services.tasks)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -50,8 +52,16 @@ dependencies {
     kapt("com.google.dagger:hilt-android-compiler:2.51.1") {
         exclude(group = "com.intellij", module = "annotations")
     }
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+
+    // Make sure you have the Firebase BoM (Bill of Materials)
+    implementation(platform("com.google.firebase:firebase-bom:32.3.1"))
+
+// Add the Firebase products you want to use WITHOUT specifying their versions
+    implementation("com.google.firebase:firebase-analytics-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+
 
 }
 kapt {

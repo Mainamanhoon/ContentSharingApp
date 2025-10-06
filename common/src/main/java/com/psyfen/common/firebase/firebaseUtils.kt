@@ -1,4 +1,4 @@
-package com.example.common.firebase
+package com.psyfen.common.firebase
 
 import com.google.android.gms.tasks.Task
 import kotlinx.coroutines.ExperimentalCoroutinesApi

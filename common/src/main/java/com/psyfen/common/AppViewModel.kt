@@ -2,7 +2,8 @@ package com.psyfen.common
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
- import kotlinx.coroutines.CoroutineExceptionHandler
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
