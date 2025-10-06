@@ -1,8 +1,7 @@
 package com.psyfen.taskapplication.com.psyfen.taskapplication.screen.content_tiles
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.common.Resource
+import com.psyfen.common.Resource
 import com.psyfen.common.AppViewModel
 import com.psyfen.domain.model.ContentTile
 import com.psyfen.domain.use_cases.GetContentTilesUseCase

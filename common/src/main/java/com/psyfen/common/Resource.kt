@@ -1,4 +1,4 @@
-package com.example.common
+package com.psyfen.common
 
 import java.lang.Exception
 

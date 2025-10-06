@@ -15,7 +15,3 @@ data class ContentTile(
 ) : Serializable
 
 
-enum class TileType {
-    CONTENT,
-    YOUTUBE
-}

@@ -18,6 +18,6 @@ open class AppViewModel :ViewModel(){
 
     }
     companion object{
-        const val ERROR_TAG = "FITNESS APP ERROR"
+        const val ERROR_TAG = "APP ERROR"
     }
 }

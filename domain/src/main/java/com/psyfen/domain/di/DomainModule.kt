@@ -1,8 +1,9 @@
 package com.psyfen.domain.di
 
+import com.psyfen.domain.respository.AuthRepository
 import com.psyfen.domain.respository.ContentTileRepository
-import com.psyfen.domain.use_cases.AddContentTileUseCase
-import com.psyfen.domain.use_cases.GetContentTilesUseCase
+import com.psyfen.domain.respository.FileRepository
+import com.psyfen.domain.use_cases.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -12,27 +13,7 @@ import dagger.hilt.components.SingletonComponent
 @Module
 object DomainModule {
 
-//    @Provides
-//    fun providesSaveVideoProgressUseCase(repository: youtubePlayerRepository): SaveVideoProgressUseCase {
-//        return SaveVideoProgressUseCase(repository)
-//    }
-//
-//    @Provides
-//    fun providesGetVideoProgressUseCase(repository: youtubePlayerRepository): GetVideoProgressUseCase {
-//        return GetVideoProgressUseCase(repository)
-//    }
-//
-//    @Provides
-//    fun providesClearVideoProgressUseCase(repository: youtubePlayerRepository): ClearVideoProgressUseCase {
-//        return ClearVideoProgressUseCase(repository)
-//    }
-//
-//    @Provides
-//    fun providesStreamVideoUseCase(): StreamVideoUseCase {
-//        return StreamVideoUseCase()
-//    }
-
-    // Part 1: Content Tiles Use Cases
+    // Content Tiles Use Cases
     @Provides
     fun providesGetContentTilesUseCase(repository: ContentTileRepository): GetContentTilesUseCase {
         return GetContentTilesUseCase(repository)
@@ -42,4 +23,56 @@ object DomainModule {
     fun providesAddContentTileUseCase(repository: ContentTileRepository): AddContentTileUseCase {
         return AddContentTileUseCase(repository)
     }
+
+    // Auth Use Cases
+    @Provides
+    fun providesSendVerificationCodeUseCase(repository: AuthRepository): SendVerificationCodeUseCase {
+        return SendVerificationCodeUseCase(repository)
+    }
+
+    @Provides
+    fun providesVerifyCodeUseCase(repository: AuthRepository): VerifyCodeUseCase {
+        return VerifyCodeUseCase(repository)
+    }
+
+    @Provides
+    fun providesSignOutUseCase(repository: AuthRepository): SignOutUseCase {
+        return SignOutUseCase(repository)
+    }
+
+    @Provides
+    fun providesGetCurrentUserUseCase(repository: AuthRepository): GetCurrentUserUseCase {
+        return GetCurrentUserUseCase(repository)
+    }
+
+    @Provides
+    fun providesIsUserLoggedInUseCase(repository: AuthRepository): IsUserLoggedInUseCase {
+        return IsUserLoggedInUseCase(repository)
+    }
+
+//    // File Use Cases
+//    @Provides
+//    fun providesUploadFileUseCase(repository: FileRepository): UploadFileUseCase {
+//        return UploadFileUseCase(repository)
+//    }
+//
+//    @Provides
+//    fun providesGetPublicFilesUseCase(repository: FileRepository): GetPublicFilesUseCase {
+//        return GetPublicFilesUseCase(repository)
+//    }
+//
+//    @Provides
+//    fun providesGetUserFilesUseCase(repository: FileRepository): GetUserFilesUseCase {
+//        return GetUserFilesUseCase(repository)
+//    }
+//
+//    @Provides
+//    fun providesDeleteFileUseCase(repository: FileRepository): DeleteFileUseCase {
+//        return DeleteFileUseCase(repository)
+//    }
+//
+//    @Provides
+//    fun providesShareFileUseCase(repository: FileRepository): ShareFileUseCase {
+//        return ShareFileUseCase(repository)
+//    }
 }

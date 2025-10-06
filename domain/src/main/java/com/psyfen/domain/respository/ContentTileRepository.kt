@@ -1,7 +1,7 @@
 package com.psyfen.domain.respository
 
 
-import com.example.common.Resource
+import com.psyfen.common.Resource
 import com.psyfen.domain.model.ContentTile
 
 

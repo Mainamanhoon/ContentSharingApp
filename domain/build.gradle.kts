@@ -60,6 +60,8 @@ dependencies {
 // Add the Firebase products you want to use WITHOUT specifying their versions
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-auth-ktx")
+
 
 }
 

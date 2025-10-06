@@ -1,6 +1,6 @@
 package com.psyfen.data.repository
 
-import com.example.common.Resource
+import com.psyfen.common.Resource
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.psyfen.domain.model.ContentTile

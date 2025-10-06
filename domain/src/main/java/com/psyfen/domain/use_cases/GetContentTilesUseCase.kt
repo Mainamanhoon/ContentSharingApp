@@ -1,7 +1,7 @@
 package com.psyfen.domain.use_cases
 
 
-import com.example.common.Resource
+import com.psyfen.common.Resource
 import com.psyfen.domain.model.ContentTile
  import com.psyfen.domain.respository.ContentTileRepository
 import javax.inject.Inject
