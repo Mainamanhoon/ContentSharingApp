@@ -93,8 +93,8 @@ class AuthRepositoryImpl @Inject constructor(
                   // New user - create profile
                   val newUser = User(
                       uid = firebaseUser.uid,
-                      phoneNumber = firebaseUser.phoneNumber,
-                      displayName = "User_${firebaseUser.phoneNumber?.takeLast(4)}",
+                      phoneNumber = firebaseUser.phoneNumber?:"",
+                      username = "User_${firebaseUser.phoneNumber?.takeLast(4)}",
                       createdAt = System.currentTimeMillis()
                   )
 
@@ -168,8 +168,8 @@ class AuthRepositoryImpl @Inject constructor(
           val firebaseUser = firebaseAuth.currentUser ?: return null
           return User(
               uid = firebaseUser.uid,
-              phoneNumber = firebaseUser.phoneNumber,
-              displayName = firebaseUser.displayName
+              phoneNumber = firebaseUser.phoneNumber?:"",
+              username = firebaseUser.displayName?:""
           )
       }
 

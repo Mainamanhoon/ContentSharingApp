@@ -53,10 +53,11 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-storage-ktx")
 
 
-// Your other dependencies...
-    // Hilt dependencies
+
+     // Hilt dependencies
     implementation("com.google.dagger:hilt-android:2.51.1") {
         exclude(group = "com.intellij", module = "annotations")
     }

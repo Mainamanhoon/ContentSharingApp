@@ -75,8 +75,8 @@ dependencies {
     // Hilt navigation for Compose
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
      implementation(platform("com.google.firebase:firebase-bom:32.3.1"))
 

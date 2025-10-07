@@ -50,29 +50,29 @@ object DomainModule {
         return IsUserLoggedInUseCase(repository)
     }
 
-//    // File Use Cases
-//    @Provides
-//    fun providesUploadFileUseCase(repository: FileRepository): UploadFileUseCase {
-//        return UploadFileUseCase(repository)
-//    }
-//
-//    @Provides
-//    fun providesGetPublicFilesUseCase(repository: FileRepository): GetPublicFilesUseCase {
-//        return GetPublicFilesUseCase(repository)
-//    }
-//
-//    @Provides
-//    fun providesGetUserFilesUseCase(repository: FileRepository): GetUserFilesUseCase {
-//        return GetUserFilesUseCase(repository)
-//    }
-//
-//    @Provides
-//    fun providesDeleteFileUseCase(repository: FileRepository): DeleteFileUseCase {
-//        return DeleteFileUseCase(repository)
-//    }
-//
-//    @Provides
-//    fun providesShareFileUseCase(repository: FileRepository): ShareFileUseCase {
-//        return ShareFileUseCase(repository)
-//    }
+    // File Use Cases
+    @Provides
+    fun providesUploadFileUseCase(repository: FileRepository): UploadFileUseCase {
+        return UploadFileUseCase(repository)
+    }
+
+    @Provides
+    fun providesGetMyFilesUseCase(repository: FileRepository): GetMyFilesUseCase {
+        return GetMyFilesUseCase(repository)
+    }
+
+    @Provides
+    fun providesGetPublicFilesUseCase(repository: FileRepository): GetPublicFilesUseCase {
+        return GetPublicFilesUseCase(repository)
+    }
+
+    @Provides
+    fun providesDeleteFileUseCase(repository: FileRepository): DeleteFileUseCase {
+        return DeleteFileUseCase(repository)
+    }
+
+    @Provides
+    fun providesShareFileUseCase(repository: FileRepository): ShareFileUseCase {
+        return ShareFileUseCase(repository)
+    }
 }
