@@ -1,9 +1,6 @@
+
 package com.psyfen.taskapplication.com.psyfen.taskapplication.screen.content_tiles
 
-import android.content.ActivityNotFoundException
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -38,10 +34,10 @@ import com.psyfen.domain.model.TileType
 @Composable
 fun ContentTilesScreen(
     viewModel: ContentTilesViewModel = hiltViewModel(),
+    onNavigateToYouTube: (String, String) -> Unit,
     onNavigateToWebView: (String, String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -81,7 +77,7 @@ fun ContentTilesScreen(
                         TilesGrid(
                             tiles = tiles,
                             onTileClick = { tile ->
-                                handleTileClick(context, tile, onNavigateToWebView)
+                                handleTileClick(tile, onNavigateToYouTube, onNavigateToWebView)
                             }
                         )
                     }else{
@@ -252,17 +248,17 @@ fun EmptyView() {
 }
 
 // Handle tile clicks
-// YouTube videos: Open in YouTube app (or browser if app not installed)
-// Regular content: Open in WebView
+// YouTube videos: Open in embedded YouTube player (stays in app)
+// Regular content: Open in WebView (stays in app)
 private fun handleTileClick(
-    context: Context,
     tile: ContentTile,
+    onNavigateToYouTube: (String, String) -> Unit,
     onNavigateToWebView: (String, String) -> Unit
 ) {
     when (tile.type) {
         TileType.YOUTUBE -> {
             tile.youtubeVideoId?.let { videoId ->
-                openYouTubeVideo(context, videoId)
+                onNavigateToYouTube(videoId, tile.title ?: "YouTube Video")
             }
         }
         TileType.CONTENT -> {
@@ -270,24 +266,5 @@ private fun handleTileClick(
                 onNavigateToWebView(url, tile.title ?: "Content")
             }
         }
-    }
-}
-
-// Opens YouTube video in YouTube app
-// Falls back to browser if YouTube app not installed
-private fun openYouTubeVideo(context: Context, videoId: String) {
-    // Try to open in YouTube app
-    val appIntent = Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:$videoId"))
-    appIntent.putExtra("force_fullscreen", true)
-
-    try {
-        context.startActivity(appIntent)
-    } catch (e: ActivityNotFoundException) {
-        // YouTube app not installed, open in browser
-        val webIntent = Intent(
-            Intent.ACTION_VIEW,
-            Uri.parse("https://www.youtube.com/watch?v=$videoId")
-        )
-        context.startActivity(webIntent)
     }
 }

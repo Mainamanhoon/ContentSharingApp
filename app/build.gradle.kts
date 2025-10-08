@@ -87,6 +87,9 @@ dependencies {
     implementation ("de.hdodenhof:circleimageview:3.1.0")
 
     implementation("io.coil-kt:coil-compose:2.5.0")
+
+    implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:13.0.0")
+
 }
 kapt {
     correctErrorTypes = true
