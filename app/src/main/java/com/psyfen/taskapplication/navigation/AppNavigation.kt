@@ -22,18 +22,11 @@ import com.psyfen.taskapplication.com.psyfen.taskapplication.screen.content_tile
 import com.psyfen.taskapplication.com.psyfen.taskapplication.screen.fileManagementScreen.FileManagementScreen
 import com.psyfen.taskapplication.com.psyfen.taskapplication.screen.loginScreen.LoginScreen
 import com.psyfen.taskapplication.com.psyfen.taskapplication.screen.mainScreen.MainScreen
-import com.psyfen.taskapplication.com.psyfen.taskapplication.webViewScreen.WebViewScreen
+import com.psyfen.taskapplication.com.psyfen.taskapplication.screen.webViewScreen.WebViewScreen
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
-//sealed class Screen(val route: String) {
-//    object Splash : Screen("splash")
-//    object Login : Screen("login")
-//    object Main : Screen("main")
-//    object ContentTiles : Screen("content_tiles")
-//    object FileManagement : Screen("file_management")
-//}
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
     object Login : Screen("login")
@@ -54,40 +47,46 @@ fun AppNavigation() {
     Log.d("AppNavigation", "=== AppNavigation composable called ===")
 
     val navController = rememberNavController()
-    Log.d("AppNavigation", "NavController created")
-
     val authViewModel: AuthViewModel = hiltViewModel()
-    Log.d("AppNavigation", "AuthViewModel injected")
-
     val authState by authViewModel.authState.collectAsState()
-    Log.d("AppNavigation", "AuthState collected: isAuthenticated=${authState.isAuthenticated}, user=${authState.user?.uid}")
 
-    // Navigate based on auth state - FIXED VERSION
+    // Safe navigation based on auth state
     LaunchedEffect(authState.isAuthenticated) {
-        Log.d("AppNavigation", "LaunchedEffect triggered: isAuthenticated=${authState.isAuthenticated}")
-
         val currentRoute = navController.currentDestination?.route
-        Log.d("AppNavigation", "Current route: $currentRoute")
+        Log.d("AppNavigation", "Auth state changed: isAuthenticated=${authState.isAuthenticated}, currentRoute=$currentRoute")
 
-        if (authState.isAuthenticated) {
-            Log.d("AppNavigation", "User authenticated, navigating to Main")
-            if (currentRoute != Screen.Main.route) {
+        // Only navigate if we're in a state that needs navigation
+        when {
+            authState.isAuthenticated && currentRoute == Screen.Splash.route -> {
+                // User is authenticated and on splash, go to main
+                Log.d("AppNavigation", "Navigating from Splash to Main")
                 navController.navigate(Screen.Main.route) {
-                    popUpTo(0) { inclusive = true }
+                    popUpTo(Screen.Splash.route) { inclusive = true }
                 }
             }
-        } else {
-            Log.d("AppNavigation", "User NOT authenticated, navigating to Login")
-            // Navigate to login if we're on splash or not on login already
-            if (currentRoute == Screen.Splash.route || currentRoute == null) {
+            authState.isAuthenticated && currentRoute == Screen.Login.route -> {
+                // User just logged in, go to main
+                Log.d("AppNavigation", "Navigating from Login to Main")
+                navController.navigate(Screen.Main.route) {
+                    popUpTo(Screen.Login.route) { inclusive = true }
+                }
+            }
+            !authState.isAuthenticated && currentRoute == Screen.Splash.route -> {
+                // User is not authenticated and on splash, go to login
+                Log.d("AppNavigation", "Navigating from Splash to Login")
                 navController.navigate(Screen.Login.route) {
                     popUpTo(Screen.Splash.route) { inclusive = true }
                 }
             }
+            !authState.isAuthenticated && currentRoute != Screen.Login.route && currentRoute != Screen.Splash.route -> {
+                // User logged out, go to login
+                Log.d("AppNavigation", "User logged out, navigating to Login")
+                navController.navigate(Screen.Login.route) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
         }
     }
-
-    Log.d("AppNavigation", "Creating NavHost with startDestination=${Screen.Splash.route}")
 
     NavHost(
         navController = navController,
@@ -102,10 +101,8 @@ fun AppNavigation() {
             Log.d("AppNavigation", "Rendering Login screen")
             LoginScreen(
                 onLoginSuccess = {
-                    Log.d("AppNavigation", "Login success, navigating to Main")
-                    navController.navigate(Screen.Main.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
-                    }
+                    Log.d("AppNavigation", "Login success")
+                    // Navigation handled by LaunchedEffect
                 }
             )
         }
@@ -122,17 +119,18 @@ fun AppNavigation() {
                     navController.navigate(Screen.FileManagement.route)
                 },
                 onLogout = {
-                    Log.d("AppNavigation", "Logout, navigating to Login")
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(0) { inclusive = true }
-                    }
+                    Log.d("AppNavigation", "Logout triggered")
+                    // Just call logout, navigation handled by LaunchedEffect
+                    authViewModel.logout()
                 }
             )
         }
 
         composable(Screen.ContentTiles.route) {
+            Log.d("AppNavigation", "Rendering ContentTiles screen")
             ContentTilesScreen(
                 onNavigateToWebView = { url, title ->
+                    Log.d("AppNavigation", "Navigating to WebView")
                     navController.navigate(Screen.WebView.createRoute(url, title))
                 }
             )
@@ -156,10 +154,14 @@ fun AppNavigation() {
             val url = URLDecoder.decode(encodedUrl, StandardCharsets.UTF_8.toString())
             val title = URLDecoder.decode(encodedTitle, StandardCharsets.UTF_8.toString())
 
+            Log.d("AppNavigation", "Rendering WebView: $url")
             WebViewScreen(
                 url = url,
                 title = title,
-                onBackPressed = { navController.popBackStack() }
+                onBackPressed = {
+                    Log.d("AppNavigation", "WebView back pressed")
+                    navController.popBackStack()
+                }
             )
         }
     }
@@ -169,7 +171,6 @@ fun AppNavigation() {
 
 @Composable
 fun SplashScreen() {
-    Log.d("SplashScreen", "SplashScreen composing")
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -178,5 +179,4 @@ fun SplashScreen() {
             color = Color(0xFFfd511e)
         )
     }
-    Log.d("SplashScreen", "SplashScreen composed")
 }

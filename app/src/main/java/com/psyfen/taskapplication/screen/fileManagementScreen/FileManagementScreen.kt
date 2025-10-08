@@ -1,6 +1,5 @@
 package com.psyfen.taskapplication.com.psyfen.taskapplication.screen.fileManagementScreen
 
-
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -9,17 +8,15 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
- import androidx.compose.material.icons.Icons
- import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -45,7 +42,6 @@ fun FileManagementScreen(
     var showUploadDialog by remember { mutableStateOf(false) }
     var showShareDialog by remember { mutableStateOf<FileItem?>(null) }
 
-    // File picker launcher
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -58,7 +54,6 @@ fun FileManagementScreen(
         }
     }
 
-    // Show upload dialog when file is selected
     LaunchedEffect(uploadState.selectedUri) {
         if (uploadState.selectedUri != null && !uploadState.isUploading) {
             Log.d("FileManagement", "File selected, showing dialog: ${uploadState.fileName}")
@@ -102,7 +97,6 @@ fun FileManagementScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Tabs
             TabRow(
                 selectedTabIndex = selectedTab,
                 containerColor = Color(0xFF1c213c),
@@ -126,7 +120,6 @@ fun FileManagementScreen(
                 )
             }
 
-            // Content
             when (selectedTab) {
                 0 -> {
                     when (val state = myFilesState) {
@@ -175,7 +168,6 @@ fun FileManagementScreen(
             }
         }
 
-        // Upload Dialog
         if (showUploadDialog && uploadState.selectedUri != null) {
             UploadDialog(
                 fileName = uploadState.fileName,
@@ -195,7 +187,6 @@ fun FileManagementScreen(
             )
         }
 
-        // Share Dialog
         showShareDialog?.let { file ->
             ShareFileDialog(
                 file = file,
@@ -208,8 +199,6 @@ fun FileManagementScreen(
         }
     }
 }
-
-// ... (Keep all the other composables: FilesList, FileItemCard, UploadDialog, etc. - same as before)
 
 @Composable
 fun UploadDialog(
@@ -293,9 +282,6 @@ fun UploadDialog(
     )
 }
 
-
-
-
 @Composable
 fun FilesList(
     files: List<FileItem>,
@@ -345,7 +331,6 @@ fun FileItemCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // File Icon
             Icon(
                 imageVector = getFileIcon(file.fileType),
                 contentDescription = null,
@@ -355,7 +340,6 @@ fun FileItemCard(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // File Info
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -400,7 +384,6 @@ fun FileItemCard(
                 }
             }
 
-            // Actions Menu
             Box {
                 IconButton(onClick = { showMenu = true }) {
                     Icon(
@@ -421,8 +404,10 @@ fun FileItemCard(
                             showMenu = false
                         },
                         leadingIcon = {
-
-                            Icon( ImageVector.vectorResource(R.drawable.outline_download_24), contentDescription = null)
+                            Icon(
+                                ImageVector.vectorResource(R.drawable.outline_download_24),
+                                contentDescription = null
+                            )
                         }
                     )
 
@@ -460,73 +445,6 @@ fun FileItemCard(
 }
 
 @Composable
-fun UploadDialog(
-    fileName: String,
-    isPublic: Boolean,
-    isUploading: Boolean,
-    onFileNameChange: (String) -> Unit,
-    onPublicChange: (Boolean) -> Unit,
-    onUpload: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = { if (!isUploading) onDismiss() },
-        title = { Text("Upload File") },
-        text = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                OutlinedTextField(
-                    value = fileName,
-                    onValueChange = onFileNameChange,
-                    label = { Text("File Name") },
-                    enabled = !isUploading,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Checkbox(
-                        checked = isPublic,
-                        onCheckedChange = onPublicChange,
-                        enabled = !isUploading
-                    )
-                    Text("Make file public")
-                }
-
-                if (isUploading) {
-                    LinearProgressIndicator(
-                        modifier = Modifier.fillMaxWidth(),
-                        color = Color(0xFFfd511e)
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = onUpload,
-                enabled = !isUploading && fileName.isNotBlank(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFfd511e)
-                )
-            ) {
-                Text(if (isUploading) "Uploading..." else "Upload")
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = onDismiss,
-                enabled = !isUploading
-            ) {
-                Text("Cancel")
-            }
-        }
-    )
-}
-
-@Composable
 fun ShareFileDialog(
     file: FileItem,
     onShare: (String) -> Unit,
@@ -546,7 +464,7 @@ fun ShareFileDialog(
                 OutlinedTextField(
                     value = phoneNumber,
                     onValueChange = { phoneNumber = it },
-                    label = { Text("Phone Number") },
+                    label = { Text("Phone Number or Username") },
                     placeholder = { Text("+91 98765 43210") },
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -594,7 +512,7 @@ fun EmptyFilesView(message: String) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Icon(
-                imageVector =  ImageVector.vectorResource(R.drawable.outline_folder_open_24),
+                imageVector = ImageVector.vectorResource(R.drawable.outline_folder_open_24),
                 contentDescription = null,
                 modifier = Modifier.size(64.dp),
                 tint = Color(0xFFC6CBC5)
@@ -638,13 +556,12 @@ fun ErrorView(
     }
 }
 
-// Helper Functions
 @Composable
 private fun getFileIcon(fileType: String) = when {
-    fileType.startsWith("image/") -> ImageVector.vectorResource( R.drawable.baseline_image_24)
+    fileType.startsWith("image/") -> ImageVector.vectorResource(R.drawable.baseline_image_24)
     fileType.startsWith("video/") -> ImageVector.vectorResource(R.drawable.outline_video_library_24)
     fileType.startsWith("audio/") -> ImageVector.vectorResource(R.drawable.outline_audio_file_24)
-    fileType == "application/pdf" ->  ImageVector.vectorResource(R.drawable.outline_picture_as_pdf_24)
+    fileType == "application/pdf" -> ImageVector.vectorResource(R.drawable.outline_picture_as_pdf_24)
     else -> ImageVector.vectorResource(R.drawable.baseline_insert_drive_file_24)
 }
 

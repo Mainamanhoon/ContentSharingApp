@@ -1,4 +1,4 @@
-package com.psyfen.taskapplication.com.psyfen.taskapplication.webViewScreen
+package com.psyfen.taskapplication.com.psyfen.taskapplication.screen.webViewScreen
 
 import android.graphics.Bitmap
 import android.webkit.WebView

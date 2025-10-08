@@ -1,5 +1,7 @@
 package com.psyfen.taskapplication.com.psyfen.taskapplication.screen.content_tiles
 
+import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.Image
@@ -38,8 +40,8 @@ fun ContentTilesScreen(
     viewModel: ContentTilesViewModel = hiltViewModel(),
     onNavigateToWebView: (String, String) -> Unit
 ) {
-
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -51,12 +53,12 @@ fun ContentTilesScreen(
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF101322), // mainColor
+                    containerColor = Color(0xFF101322),
                     titleContentColor = Color.White
                 )
             )
         },
-        containerColor = Color(0xFF101322) // mainColor
+        containerColor = Color(0xFF101322)
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -70,7 +72,7 @@ fun ContentTilesScreen(
 
                 is Resource.Failure -> {
                     ErrorView(
-                        (uiState as Resource.Failure).exception.message?:"Unkown Error",
+                        (uiState as Resource.Failure).exception.message?:"Unknown Error",
                         onRetry = {viewModel.refreshTiles()})
                 }
                 is Resource.Success -> {
@@ -79,7 +81,7 @@ fun ContentTilesScreen(
                         TilesGrid(
                             tiles = tiles,
                             onTileClick = { tile ->
-                                handleTileClick(tile, onNavigateToWebView)
+                                handleTileClick(context, tile, onNavigateToWebView)
                             }
                         )
                     }else{
@@ -87,9 +89,7 @@ fun ContentTilesScreen(
                     }
                 }
             }
-
         }
-
     }
 }
 
@@ -128,7 +128,6 @@ fun TileItem(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Tile Image
             val imageUrl = when (tile.type) {
                 TileType.YOUTUBE -> tile.youtubeThumbnailUrl ?: tile.imageUrl
                 TileType.CONTENT -> tile.imageUrl
@@ -252,24 +251,43 @@ fun EmptyView() {
     }
 }
 
-// Handle tile click events - Opens YouTube videos or web URLs
+// Handle tile clicks
+// YouTube videos: Open in YouTube app (or browser if app not installed)
+// Regular content: Open in WebView
 private fun handleTileClick(
+    context: Context,
     tile: ContentTile,
     onNavigateToWebView: (String, String) -> Unit
 ) {
     when (tile.type) {
         TileType.YOUTUBE -> {
-            // Open YouTube video in WebView
             tile.youtubeVideoId?.let { videoId ->
-                val url = "https://www.youtube.com/watch?v=$videoId"
-                onNavigateToWebView(url, tile.title ?: "YouTube Video")
+                openYouTubeVideo(context, videoId)
             }
         }
         TileType.CONTENT -> {
-            // Open content URL in WebView
             tile.webViewUrl?.let { url ->
                 onNavigateToWebView(url, tile.title ?: "Content")
             }
         }
+    }
+}
+
+// Opens YouTube video in YouTube app
+// Falls back to browser if YouTube app not installed
+private fun openYouTubeVideo(context: Context, videoId: String) {
+    // Try to open in YouTube app
+    val appIntent = Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:$videoId"))
+    appIntent.putExtra("force_fullscreen", true)
+
+    try {
+        context.startActivity(appIntent)
+    } catch (e: ActivityNotFoundException) {
+        // YouTube app not installed, open in browser
+        val webIntent = Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse("https://www.youtube.com/watch?v=$videoId")
+        )
+        context.startActivity(webIntent)
     }
 }

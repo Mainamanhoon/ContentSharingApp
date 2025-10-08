@@ -43,9 +43,8 @@ class FileRepositoryImpl @Inject constructor(
                 return Resource.Failure(Exception("User not Logged In"))
             }
 
-            Log.d("FileRepository", "Starting upload for user: $userId")
+            Log.d("FileRepository", "Starting upload for user: $userId, isPublic: $isPublic")
 
-            // Generate unique file name
             val uniqueFileName = "${UUID.randomUUID()}_$fileName"
             val storageRef = storage.reference
                 .child(STORAGE_PATH)
@@ -73,12 +72,11 @@ class FileRepositoryImpl @Inject constructor(
                 uploadedAt = System.currentTimeMillis()
             )
 
-            // Save to Firestore
             val docRef = firestore.collection(COLLECTION_FILES)
                 .add(fileItem)
                 .await()
 
-            Log.d("FileRepository", "File saved with ID: ${docRef.id}")
+            Log.d("FileRepository", "File saved with ID: ${docRef.id}, isPublic: $isPublic")
             Resource.Success(fileItem.copy(id = docRef.id))
         } catch (e: Exception) {
             Log.e("FileRepository", "Upload failed", e)
@@ -86,6 +84,7 @@ class FileRepositoryImpl @Inject constructor(
         }
     }
 
+    // My Files: Show PRIVATE files owned by user OR files shared with user
     override suspend fun getMyFiles(): Flow<Resource<List<FileItem>>> = callbackFlow {
         val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         val userId = prefs.getString("user_id", null)
@@ -96,34 +95,49 @@ class FileRepositoryImpl @Inject constructor(
             return@callbackFlow
         }
 
-        Log.d("FileRepository", "Listening for files of user: $userId")
+        Log.d("FileRepository", "=== MY FILES Query Started ===")
+        Log.d("FileRepository", "User ID: $userId")
 
-        val listener = firestore.collection(COLLECTION_FILES)
+        // Query ALL files owned by user first (to debug)
+        val debugListener = firestore.collection(COLLECTION_FILES)
             .whereEqualTo("ownerId", userId)
-            .orderBy("uploadedAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    Log.e("FileRepository", "Error loading my files", error)
-                    trySend(Resource.Failure(error))
+                    Log.e("FileRepository", "DEBUG: Error querying owned files", error)
+                    Log.e("FileRepository", "Error message: ${error.message}")
+                    Log.e("FileRepository", "Error cause: ${error.cause}")
                     return@addSnapshotListener
                 }
 
-                val files = snapshot?.documents?.mapNotNull { doc ->
-                    doc.toObject(FileItem::class.java)?.copy(id = doc.id)
+                val allOwned = snapshot?.documents?.mapNotNull { doc ->
+                    val file = doc.toObject(FileItem::class.java)?.copy(id = doc.id)
+                    Log.d("FileRepository", "DEBUG: Found owned file - ID: ${doc.id}, Name: ${file?.fileName}, isPublic: ${file?.isPublic}")
+                    file
                 } ?: emptyList()
 
-                Log.d("FileRepository", "My files updated: ${files.size} files")
-                trySend(Resource.Success(files))
+                Log.d("FileRepository", "DEBUG: Total files owned by user: ${allOwned.size}")
+
+                // Filter PRIVATE files only
+                val privateFiles = allOwned.filter { it.isPublic == false }
+                Log.d("FileRepository", "DEBUG: Private files (isPublic=false): ${privateFiles.size}")
+
+                // For now, just emit private files (we'll add shared files logic later)
+                Log.d("FileRepository", "=== Emitting ${privateFiles.size} files ===")
+                trySend(Resource.Success(privateFiles))
             }
 
-        awaitClose { listener.remove() }
+        awaitClose {
+            debugListener.remove()
+            Log.d("FileRepository", "=== MY FILES listener closed ===")
+        }
     }
 
+    // Public Files: Show ALL public files from any user
     override suspend fun getPublicFiles(): Flow<Resource<List<FileItem>>> = callbackFlow {
-        Log.d("FileRepository", "Listening for public files")
+        Log.d("FileRepository", "Listening for PUBLIC files")
 
         val listener = firestore.collection(COLLECTION_FILES)
-            .whereEqualTo("isPublic", true)
+            .whereEqualTo("public", true)
             .orderBy("uploadedAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
@@ -136,7 +150,7 @@ class FileRepositoryImpl @Inject constructor(
                     doc.toObject(FileItem::class.java)?.copy(id = doc.id)
                 } ?: emptyList()
 
-                Log.d("FileRepository", "Public files updated: ${files.size} files")
+                Log.d("FileRepository", "Public files loaded: ${files.size}")
                 trySend(Resource.Success(files))
             }
 
@@ -153,11 +167,14 @@ class FileRepositoryImpl @Inject constructor(
             return@callbackFlow
         }
 
+        Log.d("FileRepository", "Listening for files shared with user: $userId")
+
         val listener = firestore.collection(COLLECTION_FILES)
             .whereArrayContains("sharedWith", userId)
             .orderBy("uploadedAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    Log.e("FileRepository", "Error loading shared files", error)
                     trySend(Resource.Failure(error))
                     return@addSnapshotListener
                 }
@@ -166,6 +183,7 @@ class FileRepositoryImpl @Inject constructor(
                     doc.toObject(FileItem::class.java)?.copy(id = doc.id)
                 } ?: emptyList()
 
+                Log.d("FileRepository", "Shared files loaded: ${files.size}")
                 trySend(Resource.Success(files))
             }
 
@@ -184,11 +202,9 @@ class FileRepositoryImpl @Inject constructor(
             val fileItem = doc.toObject(FileItem::class.java)
                 ?: return Resource.Failure(Exception("File not found"))
 
-            // Delete from Storage
             val storageRef = storage.getReferenceFromUrl(fileItem.fileUrl)
             storageRef.delete().await()
 
-            // Delete from Firestore
             firestore.collection(COLLECTION_FILES)
                 .document(fileId)
                 .delete()
@@ -207,12 +223,9 @@ class FileRepositoryImpl @Inject constructor(
         rawUserIdentifier: String
     ): Resource<Unit> {
         return try {
-
             val userIdentifier = rawUserIdentifier.filterNot { it.isWhitespace() }
             Log.d("FileRepository", "Searching for user: $userIdentifier")
 
-
-            // Find user by username or phone number
             val userSnapshot = firestore.collection("users")
                 .whereEqualTo("username", userIdentifier)
                 .get()
@@ -220,7 +233,6 @@ class FileRepositoryImpl @Inject constructor(
 
             val targetUserId = if (userSnapshot.isEmpty) {
                 Log.d("FileRepository", "User not found by username, trying phone number")
-                // Try phone number
                 val phoneSnapshot = firestore.collection("users")
                     .whereEqualTo("phoneNumber", userIdentifier)
                     .get()
@@ -237,7 +249,6 @@ class FileRepositoryImpl @Inject constructor(
 
             Log.d("FileRepository", "Found user ID: $targetUserId, sharing file: $fileId")
 
-            // Update file's sharedWith array
             firestore.collection(COLLECTION_FILES)
                 .document(fileId)
                 .update(
@@ -256,7 +267,6 @@ class FileRepositoryImpl @Inject constructor(
 
     override suspend fun downloadFile(fileItem: FileItem): Resource<Uri> {
         return try {
-            // For simplicity, return the download URL
             Resource.Success(Uri.parse(fileItem.fileUrl))
         } catch (e: Exception) {
             Resource.Failure(e)
