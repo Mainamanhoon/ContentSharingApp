@@ -126,6 +126,8 @@ fun LoginScreen(
                     is LoginUiState.Success -> {
                         // Will trigger navigation
                     }
+
+                    else -> {Unit}
                 }
 
                 // Error message
@@ -226,7 +228,7 @@ fun OtpInput(
             value = verificationCode,
             onValueChange = onCodeChange,
             label = { Text("Verification Code") },
-            placeholder = { Text("123456") },
+            placeholder = { Text(text ="123456") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),

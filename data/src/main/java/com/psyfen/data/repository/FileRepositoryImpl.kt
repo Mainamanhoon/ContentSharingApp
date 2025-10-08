@@ -1,8 +1,8 @@
 package com.psyfen.data.repository
 
-
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.callbackFlow
 import java.util.UUID
 import javax.inject.Inject
 
-
 class FileRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val storage: FirebaseStorage,
@@ -27,12 +26,11 @@ class FileRepositoryImpl @Inject constructor(
     companion object {
         private const val COLLECTION_FILES = "files"
         private const val STORAGE_PATH = "user_files"
-
     }
 
     val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-    val userId :String? = prefs.getString("user_id", null)
-    val username: String?= prefs.getString("username", "Unknown")
+    val userId: String? = prefs.getString("user_id", null)
+    val username: String? = prefs.getString("username", "Unknown")
 
     override suspend fun uploadFile(
         uri: Uri,
@@ -40,10 +38,12 @@ class FileRepositoryImpl @Inject constructor(
         isPublic: Boolean
     ): Resource<FileItem> {
         return try {
-
             if(userId.isNullOrEmpty() || username.isNullOrEmpty()) {
+                Log.e("FileRepository", "User not logged in")
                 return Resource.Failure(Exception("User not Logged In"))
             }
+
+            Log.d("FileRepository", "Starting upload for user: $userId")
 
             // Generate unique file name
             val uniqueFileName = "${UUID.randomUUID()}_$fileName"
@@ -52,13 +52,17 @@ class FileRepositoryImpl @Inject constructor(
                 .child(userId)
                 .child(uniqueFileName)
 
-             val uploadTask = storageRef.putFile(uri).await()
+            Log.d("FileRepository", "Uploading to: ${storageRef.path}")
+
+            val uploadTask = storageRef.putFile(uri).await()
             val downloadUrl = storageRef.downloadUrl.await()
 
-             val fileSize = uploadTask.metadata?.sizeBytes ?: 0L
+            val fileSize = uploadTask.metadata?.sizeBytes ?: 0L
             val fileType = context.contentResolver.getType(uri) ?: "unknown"
 
-             val fileItem = FileItem(
+            Log.d("FileRepository", "Upload complete, creating Firestore entry")
+
+            val fileItem = FileItem(
                 fileName = fileName,
                 fileUrl = downloadUrl.toString(),
                 fileType = fileType,
@@ -74,9 +78,10 @@ class FileRepositoryImpl @Inject constructor(
                 .add(fileItem)
                 .await()
 
+            Log.d("FileRepository", "File saved with ID: ${docRef.id}")
             Resource.Success(fileItem.copy(id = docRef.id))
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("FileRepository", "Upload failed", e)
             Resource.Failure(e)
         }
     }
@@ -91,11 +96,14 @@ class FileRepositoryImpl @Inject constructor(
             return@callbackFlow
         }
 
+        Log.d("FileRepository", "Listening for files of user: $userId")
+
         val listener = firestore.collection(COLLECTION_FILES)
             .whereEqualTo("ownerId", userId)
             .orderBy("uploadedAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    Log.e("FileRepository", "Error loading my files", error)
                     trySend(Resource.Failure(error))
                     return@addSnapshotListener
                 }
@@ -104,19 +112,22 @@ class FileRepositoryImpl @Inject constructor(
                     doc.toObject(FileItem::class.java)?.copy(id = doc.id)
                 } ?: emptyList()
 
+                Log.d("FileRepository", "My files updated: ${files.size} files")
                 trySend(Resource.Success(files))
             }
 
         awaitClose { listener.remove() }
     }
 
-
     override suspend fun getPublicFiles(): Flow<Resource<List<FileItem>>> = callbackFlow {
+        Log.d("FileRepository", "Listening for public files")
+
         val listener = firestore.collection(COLLECTION_FILES)
             .whereEqualTo("isPublic", true)
             .orderBy("uploadedAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    Log.e("FileRepository", "Error loading public files", error)
                     trySend(Resource.Failure(error))
                     return@addSnapshotListener
                 }
@@ -125,6 +136,7 @@ class FileRepositoryImpl @Inject constructor(
                     doc.toObject(FileItem::class.java)?.copy(id = doc.id)
                 } ?: emptyList()
 
+                Log.d("FileRepository", "Public files updated: ${files.size} files")
                 trySend(Resource.Success(files))
             }
 
@@ -162,6 +174,8 @@ class FileRepositoryImpl @Inject constructor(
 
     override suspend fun deleteFile(fileId: String): Resource<Unit> {
         return try {
+            Log.d("FileRepository", "Deleting file: $fileId")
+
             val doc = firestore.collection(COLLECTION_FILES)
                 .document(fileId)
                 .get()
@@ -180,24 +194,32 @@ class FileRepositoryImpl @Inject constructor(
                 .delete()
                 .await()
 
+            Log.d("FileRepository", "File deleted successfully")
             Resource.Success(Unit)
         } catch (e: Exception) {
+            Log.e("FileRepository", "Delete failed", e)
             Resource.Failure(e)
         }
     }
+
     override suspend fun shareFileWithUser(
         fileId: String,
-        userIdentifier: String
+        rawUserIdentifier: String
     ): Resource<Unit> {
         return try {
+
+            val userIdentifier = rawUserIdentifier.filterNot { it.isWhitespace() }
+            Log.d("FileRepository", "Searching for user: $userIdentifier")
+
+
             // Find user by username or phone number
-            //TODO once everything works , we might remove shareing using username , seems like bullshit
             val userSnapshot = firestore.collection("users")
                 .whereEqualTo("username", userIdentifier)
                 .get()
+                .await()
 
-
-            val targetUserId = if (userSnapshot.result.isEmpty()) {
+            val targetUserId = if (userSnapshot.isEmpty) {
+                Log.d("FileRepository", "User not found by username, trying phone number")
                 // Try phone number
                 val phoneSnapshot = firestore.collection("users")
                     .whereEqualTo("phoneNumber", userIdentifier)
@@ -205,13 +227,15 @@ class FileRepositoryImpl @Inject constructor(
                     .await()
 
                 if (phoneSnapshot.isEmpty) {
+                    Log.e("FileRepository", "User not found: $userIdentifier")
                     return Resource.Failure(Exception("User not found"))
                 }
                 phoneSnapshot.documents.first().id
             } else {
-
-                userSnapshot.result.documents.first().id
+                userSnapshot.documents.first().id
             }
+
+            Log.d("FileRepository", "Found user ID: $targetUserId, sharing file: $fileId")
 
             // Update file's sharedWith array
             firestore.collection(COLLECTION_FILES)
@@ -222,8 +246,10 @@ class FileRepositoryImpl @Inject constructor(
                 )
                 .await()
 
+            Log.d("FileRepository", "File shared successfully")
             Resource.Success(Unit)
         } catch (e: Exception) {
+            Log.e("FileRepository", "Error sharing file", e)
             Resource.Failure(e)
         }
     }
@@ -231,11 +257,9 @@ class FileRepositoryImpl @Inject constructor(
     override suspend fun downloadFile(fileItem: FileItem): Resource<Uri> {
         return try {
             // For simplicity, return the download URL
-            // In a real app, you might want to download to local storage
             Resource.Success(Uri.parse(fileItem.fileUrl))
         } catch (e: Exception) {
             Resource.Failure(e)
         }
     }
-
 }

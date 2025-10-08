@@ -1,6 +1,5 @@
 package com.psyfen.taskapplication.com.psyfen.taskapplication.screen.content_tiles
 
-
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.Image
@@ -27,18 +26,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat.startActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.psyfen.common.Resource
 import com.psyfen.domain.model.ContentTile
 import com.psyfen.domain.model.TileType
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContentTilesScreen(
-    viewModel: ContentTilesViewModel = hiltViewModel()
+    viewModel: ContentTilesViewModel = hiltViewModel(),
+    onNavigateToWebView: (String, String) -> Unit
 ) {
 
     val uiState by viewModel.uiState.collectAsState()
@@ -65,59 +63,67 @@ fun ContentTilesScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-                      when(uiState){
-                          is Resource.Loading ->{
-                              LoadingView()
-                          }
+            when(uiState){
+                is Resource.Loading ->{
+                    LoadingView()
+                }
 
-                          is Resource.Failure -> {
-                              ErrorView(
-                                  (uiState as Resource.Failure).exception.message?:"Unkown Error",
-                              onRetry = {viewModel.refreshTiles()})
-                          }
-                          is Resource.Success -> {
-                             val tiles = (uiState as Resource.Success<List<ContentTile>>).result
-                              if(tiles.isNotEmpty()){
-                                  TilesGrid(tiles)
-                              }else{
-                                  EmptyView()
-                              }
-                          }
-                      }
-
+                is Resource.Failure -> {
+                    ErrorView(
+                        (uiState as Resource.Failure).exception.message?:"Unkown Error",
+                        onRetry = {viewModel.refreshTiles()})
+                }
+                is Resource.Success -> {
+                    val tiles = (uiState as Resource.Success<List<ContentTile>>).result
+                    if(tiles.isNotEmpty()){
+                        TilesGrid(
+                            tiles = tiles,
+                            onTileClick = { tile ->
+                                handleTileClick(tile, onNavigateToWebView)
+                            }
+                        )
+                    }else{
+                        EmptyView()
+                    }
+                }
             }
+
+        }
 
     }
 }
 
-
 @Composable
-fun TilesGrid(tiles: List<ContentTile>) {
+fun TilesGrid(
+    tiles: List<ContentTile>,
+    onTileClick: (ContentTile) -> Unit
+) {
     LazyVerticalGrid(
-        columns = GridCells.Fixed(3), // 3 columns for landscape
+        columns = GridCells.Fixed(3),
         contentPadding = PaddingValues(16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.fillMaxSize()
     ) {
         items(tiles) { tile ->
-            TileItem(tile = tile)
+            TileItem(
+                tile = tile,
+                onClick = { onTileClick(tile) }
+            )
         }
     }
 }
 
-
 @Composable
-fun TileItem(tile: ContentTile) {
-    val context = LocalContext.current
-
+fun TileItem(
+    tile: ContentTile,
+    onClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(1f) // Square tiles
-            .clickable {
-                handleTileClick(context, tile)
-            },
+            .aspectRatio(1f)
+            .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -135,7 +141,7 @@ fun TileItem(tile: ContentTile) {
                 contentScale = ContentScale.Crop
             )
 
-             Box(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
@@ -149,7 +155,7 @@ fun TileItem(tile: ContentTile) {
                     )
             )
 
-             Text(
+            Text(
                 text = tile.title ?: "",
                 modifier = Modifier
                     .align(Alignment.BottomStart)
@@ -162,7 +168,7 @@ fun TileItem(tile: ContentTile) {
                 overflow = TextOverflow.Ellipsis
             )
 
-             if (tile.type == TileType.YOUTUBE) {
+            if (tile.type == TileType.YOUTUBE) {
                 Icon(
                     imageVector = Icons.Default.PlayArrow,
                     contentDescription = "Play Video",
@@ -175,7 +181,6 @@ fun TileItem(tile: ContentTile) {
         }
     }
 }
-
 
 @Composable
 fun LoadingView() {
@@ -201,8 +206,6 @@ fun LoadingView() {
     }
 }
 
-
-
 @Composable
 fun ErrorView(
     message: String,
@@ -219,14 +222,14 @@ fun ErrorView(
         ) {
             Text(
                 text = "Error: $message",
-                color = Color(0xFFFF3333), // red color
+                color = Color(0xFFFF3333),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium
             )
             Button(
                 onClick = onRetry,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFfd511e) // orange color
+                    containerColor = Color(0xFFfd511e)
                 )
             ) {
                 Text("Retry", color = Color.White)
@@ -234,7 +237,6 @@ fun ErrorView(
         }
     }
 }
-
 
 @Composable
 fun EmptyView() {
@@ -250,35 +252,24 @@ fun EmptyView() {
     }
 }
 
-/**
- * Handles tile click events
- * Opens YouTube videos or web URLs
- */
-private fun handleTileClick(context: android.content.Context, tile: ContentTile) {
+// Handle tile click events - Opens YouTube videos or web URLs
+private fun handleTileClick(
+    tile: ContentTile,
+    onNavigateToWebView: (String, String) -> Unit
+) {
     when (tile.type) {
         TileType.YOUTUBE -> {
-            // Open YouTube video
+            // Open YouTube video in WebView
             tile.youtubeVideoId?.let { videoId ->
-                val intent = Intent(
-                    Intent.ACTION_VIEW,
-                    Uri.parse("https://www.youtube.com/watch?v=$videoId")
-                )
-                context.startActivity(intent)
+                val url = "https://www.youtube.com/watch?v=$videoId"
+                onNavigateToWebView(url, tile.title ?: "YouTube Video")
             }
         }
         TileType.CONTENT -> {
-            // Open WebView or URL
+            // Open content URL in WebView
             tile.webViewUrl?.let { url ->
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                context.startActivity(intent)
+                onNavigateToWebView(url, tile.title ?: "Content")
             }
         }
-    }
-}
-private fun setupContentTilesNavigation() {
-    // Add click listener to an existing button or create a new one
-    binding.exploreContentBtn?.setOnClickListener {
-        val intent = Intent(this, ContentTilesActivity::class.java)
-        startActivity(intent)
     }
 }

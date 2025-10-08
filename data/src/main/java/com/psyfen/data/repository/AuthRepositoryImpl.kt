@@ -40,7 +40,21 @@ class AuthRepositoryImpl @Inject constructor(
           try {
               val callback = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks(){
                   override fun onVerificationCompleted(p0: PhoneAuthCredential) {
-
+                      val smsCode = p0.smsCode
+                      if (smsCode != null) {
+                          // ✅ Automatically detected code from SMS
+                          continuation.resume(Resource.Success(smsCode))
+                      } else {
+                           firebaseAuth.signInWithCredential(p0)
+                              .addOnCompleteListener { task ->
+                                  if (task.isSuccessful) {
+                                      val user = task.result?.user
+                                      continuation.resume(Resource.Success(user?.uid ?: ""))
+                                  } else {
+                                      continuation.resume(Resource.Failure(task.exception ?: Exception("Sign-in failed")))
+                                  }
+                              }
+                      }
                    }
 
                   override fun onVerificationFailed(p0: FirebaseException) {
