@@ -22,6 +22,7 @@ import com.psyfen.taskapplication.com.psyfen.taskapplication.screen.content_tile
 import com.psyfen.taskapplication.com.psyfen.taskapplication.screen.fileManagementScreen.FileManagementScreen
 import com.psyfen.taskapplication.com.psyfen.taskapplication.screen.loginScreen.LoginScreen
 import com.psyfen.taskapplication.com.psyfen.taskapplication.screen.mainScreen.MainScreen
+import com.psyfen.taskapplication.com.psyfen.taskapplication.screen.playerScreen.YouTubePlayerScreen
 import com.psyfen.taskapplication.com.psyfen.taskapplication.screen.webViewScreen.WebViewScreen
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -33,6 +34,14 @@ sealed class Screen(val route: String) {
     object Main : Screen("main")
     object ContentTiles : Screen("content_tiles")
     object FileManagement : Screen("file_management")
+
+    object YouTubePlayer : Screen("youtube_player/{videoId}/{title}") {
+        fun createRoute(videoId: String, title: String): String {
+            val encodedTitle = URLEncoder.encode(title, StandardCharsets.UTF_8.toString())
+            return "youtube_player/$videoId/$encodedTitle"
+        }
+    }
+
     object WebView : Screen("webview/{url}/{title}") {
         fun createRoute(url: String, title: String): String {
             val encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
@@ -50,36 +59,30 @@ fun AppNavigation() {
     val authViewModel: AuthViewModel = hiltViewModel()
     val authState by authViewModel.authState.collectAsState()
 
-    // Safe navigation based on auth state
     LaunchedEffect(authState.isAuthenticated) {
         val currentRoute = navController.currentDestination?.route
         Log.d("AppNavigation", "Auth state changed: isAuthenticated=${authState.isAuthenticated}, currentRoute=$currentRoute")
 
-        // Only navigate if we're in a state that needs navigation
         when {
             authState.isAuthenticated && currentRoute == Screen.Splash.route -> {
-                // User is authenticated and on splash, go to main
                 Log.d("AppNavigation", "Navigating from Splash to Main")
                 navController.navigate(Screen.Main.route) {
                     popUpTo(Screen.Splash.route) { inclusive = true }
                 }
             }
             authState.isAuthenticated && currentRoute == Screen.Login.route -> {
-                // User just logged in, go to main
                 Log.d("AppNavigation", "Navigating from Login to Main")
                 navController.navigate(Screen.Main.route) {
                     popUpTo(Screen.Login.route) { inclusive = true }
                 }
             }
             !authState.isAuthenticated && currentRoute == Screen.Splash.route -> {
-                // User is not authenticated and on splash, go to login
                 Log.d("AppNavigation", "Navigating from Splash to Login")
                 navController.navigate(Screen.Login.route) {
                     popUpTo(Screen.Splash.route) { inclusive = true }
                 }
             }
             !authState.isAuthenticated && currentRoute != Screen.Login.route && currentRoute != Screen.Splash.route -> {
-                // User logged out, go to login
                 Log.d("AppNavigation", "User logged out, navigating to Login")
                 navController.navigate(Screen.Login.route) {
                     popUpTo(0) { inclusive = true }
@@ -102,7 +105,6 @@ fun AppNavigation() {
             LoginScreen(
                 onLoginSuccess = {
                     Log.d("AppNavigation", "Login success")
-                    // Navigation handled by LaunchedEffect
                 }
             )
         }
@@ -120,7 +122,6 @@ fun AppNavigation() {
                 },
                 onLogout = {
                     Log.d("AppNavigation", "Logout triggered")
-                    // Just call logout, navigation handled by LaunchedEffect
                     authViewModel.logout()
                 }
             )
@@ -129,6 +130,10 @@ fun AppNavigation() {
         composable(Screen.ContentTiles.route) {
             Log.d("AppNavigation", "Rendering ContentTiles screen")
             ContentTilesScreen(
+                onNavigateToYouTube = { videoId, title ->
+                    Log.d("AppNavigation", "Navigating to YouTube Player")
+                    navController.navigate(Screen.YouTubePlayer.createRoute(videoId, title))
+                },
                 onNavigateToWebView = { url, title ->
                     Log.d("AppNavigation", "Navigating to WebView")
                     navController.navigate(Screen.WebView.createRoute(url, title))
@@ -141,6 +146,30 @@ fun AppNavigation() {
             FileManagementScreen()
         }
 
+        // YouTube Player Screen
+        composable(
+            route = Screen.YouTubePlayer.route,
+            arguments = listOf(
+                navArgument("videoId") { type = NavType.StringType },
+                navArgument("title") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val videoId = backStackEntry.arguments?.getString("videoId") ?: ""
+            val encodedTitle = backStackEntry.arguments?.getString("title") ?: ""
+            val title = URLDecoder.decode(encodedTitle, StandardCharsets.UTF_8.toString())
+
+            Log.d("AppNavigation", "Rendering YouTube Player: $videoId")
+            YouTubePlayerScreen(
+                videoId = videoId,
+                title = title,
+                onBackPressed = {
+                    Log.d("AppNavigation", "YouTube Player back pressed")
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // WebView Screen
         composable(
             route = Screen.WebView.route,
             arguments = listOf(
