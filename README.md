@@ -2,6 +2,21 @@
 
 A modern Android application built with Jetpack Compose, featuring content management, file handling, and multimedia playback capabilities. The app follows Clean Architecture principles with a modular structure.
 
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/d42364d5-35f9-40d6-b8aa-167596e947bd" width="45%" />
+  <img src="https://github.com/user-attachments/assets/8112ff5c-82f8-4f1f-ac9b-39a7bccfab76" width="45%" />
+</p>
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/dbb25cd4-9038-49cf-9496-a2b48a1b8f3e" width="45%" />
+  <img src="https://github.com/user-attachments/assets/bf1634e8-6dda-4028-aef1-bfd2e87406fe" width="45%" />
+</p>
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/05d732b7-040b-4463-bd42-b05539fc01f9" width="45%" />
+</p>
+
 ##  Features
 
 - **Authentication System** - Secure user login and session management
@@ -32,7 +47,7 @@ The project follows **Clean Architecture** principles with the following module 
 - **Data Layer** (`data/`) - Repository implementations and data sources
 - **Common Layer** (`common/`) - Shared utilities and reusable components
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 ### Core Technologies
 - **Kotlin** - Programming language
@@ -61,7 +76,7 @@ The project follows **Clean Architecture** principles with the following module 
 - **Version Catalog** - Dependency management
 - **ProGuard** - Code obfuscation
 
-## 📱 App Structure
+##  App Structure
 
 ### Main Screens
 - **Splash Screen** - App initialization and authentication check
@@ -78,7 +93,7 @@ The project follows **Clean Architecture** principles with the following module 
 - **Repository Pattern** - Data abstraction layer
 - **Use Cases** - Business logic encapsulation
 
-## 🔧 Setup & Installation
+##  Setup & Installation
 
 ### Prerequisites
 - Android Studio Hedgehog (2023.1.1) or later
