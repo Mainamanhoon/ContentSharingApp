@@ -1,4 +1,4 @@
-package com.psyfen.taskapplication.com.psyfen.taskapplication.screen.auth
+package com.psyfen.taskapplication.screen.auth
 
 import android.content.Context
 import android.content.SharedPreferences

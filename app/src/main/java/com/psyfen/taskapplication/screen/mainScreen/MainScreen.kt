@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.psyfen.taskapplication.R
-import com.psyfen.taskapplication.com.psyfen.taskapplication.screen.auth.AuthViewModel
+import com.psyfen.taskapplication.screen.auth.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

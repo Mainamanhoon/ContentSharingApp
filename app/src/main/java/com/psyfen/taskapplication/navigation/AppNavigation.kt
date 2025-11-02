@@ -17,7 +17,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.psyfen.taskapplication.com.psyfen.taskapplication.screen.auth.AuthViewModel
+import com.psyfen.taskapplication.screen.auth.AuthViewModel
 import com.psyfen.taskapplication.com.psyfen.taskapplication.screen.content_tiles.ContentTilesScreen
 import com.psyfen.taskapplication.com.psyfen.taskapplication.screen.fileManagementScreen.FileManagementScreen
 import com.psyfen.taskapplication.com.psyfen.taskapplication.screen.loginScreen.LoginScreen
@@ -100,15 +100,16 @@ fun AppNavigation() {
             SplashScreen()
         }
 
-        composable(Screen.Login.route) {
+         composable(Screen.Login.route) {
             Log.d("AppNavigation", "Rendering Login screen")
             LoginScreen(
                 onLoginSuccess = {
-                    Log.d("AppNavigation", "Login success")
+                      navController.navigate(Screen.Main.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
                 }
             )
         }
-
         composable(Screen.Main.route) {
             Log.d("AppNavigation", "Rendering Main screen")
             MainScreen(
