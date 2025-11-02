@@ -2,7 +2,6 @@
 
 A modern Android application built with Jetpack Compose, featuring content management, file handling, and multimedia playback capabilities. The app follows Clean Architecture principles with a modular structure.
 
-## 🚀 Features
 
 - **Authentication System** - Secure user login and session management
 - **Content Tiles** - Interactive content display with navigation to videos and web content
@@ -12,17 +11,10 @@ A modern Android application built with Jetpack Compose, featuring content manag
 - **Firebase Integration** - Real-time data synchronization with Firestore
 - **Modern UI** - Built with Jetpack Compose and Material Design 3
 
-## 🏗️ Architecture
 
 The project follows **Clean Architecture** principles with the following module structure:
 
 ```
-📦 TaskApplication
-├── 📁 app/                    # Main application module
-├── 📁 domain/                 # Business logic and entities
-├── 📁 data/                   # Data sources and repositories
-├── 📁 common/                 # Shared utilities and components
-└── 📁 build/                  # Build outputs
 ```
 
 ### Architecture Layers
@@ -32,7 +24,6 @@ The project follows **Clean Architecture** principles with the following module 
 - **Data Layer** (`data/`) - Repository implementations and data sources
 - **Common Layer** (`common/`) - Shared utilities and reusable components
 
-## 🛠️ Tech Stack
 
 ### Core Technologies
 - **Kotlin** - Programming language
@@ -61,7 +52,6 @@ The project follows **Clean Architecture** principles with the following module 
 - **Version Catalog** - Dependency management
 - **ProGuard** - Code obfuscation
 
-## 📱 App Structure
 
 ### Main Screens
 - **Splash Screen** - App initialization and authentication check
@@ -78,7 +68,6 @@ The project follows **Clean Architecture** principles with the following module 
 - **Repository Pattern** - Data abstraction layer
 - **Use Cases** - Business logic encapsulation
 
-## 🔧 Setup & Installation
 
 ### Prerequisites
 - Android Studio Hedgehog (2023.1.1) or later
@@ -90,7 +79,6 @@ The project follows **Clean Architecture** principles with the following module 
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
    cd TaskStempedia
    ```
 
@@ -109,7 +97,6 @@ The project follows **Clean Architecture** principles with the following module 
    ```
    Or use Android Studio's run configuration.
 
-## 📋 Permissions
 
 The app requires the following permissions:
 - `INTERNET` - Network connectivity
@@ -120,26 +107,22 @@ The app requires the following permissions:
 - `READ_MEDIA_VIDEO` - Video file access (API 33+)
 - `READ_SMS` - SMS access (if applicable)
 
-## 🔒 Security Features
 
 - **Authentication State Management** - Secure session handling
 - **ProGuard Rules** - Code obfuscation for release builds
 - **Firebase Security Rules** - Database access control
 - **Permission Management** - Runtime permission handling
 
-## 📊 Build Variants
 
 - **Debug** - Development build with debugging enabled
 - **Release** - Production build with optimizations and obfuscation
 
-## 🧪 Testing
 
 The project includes test configurations for:
 - **Unit Tests** - Business logic testing
 - **Instrumented Tests** - UI and integration testing
 - **Test Runners** - AndroidJUnitRunner for Android tests
 
-## 📦 Dependencies
 
 ### Core Dependencies
 - AndroidX Core KTX
@@ -164,31 +147,10 @@ The project includes test configurations for:
 - Navigation Component
 - Coroutines
 
-## 🚀 Getting Started
 
 1. **Authentication**: The app starts with a splash screen that checks authentication state
 2. **Login**: New users will be directed to the login screen
 3. **Main Dashboard**: Authenticated users access the main screen with navigation options
 4. **Content Exploration**: Navigate through content tiles to access videos and web content
 5. **File Management**: Upload and organize files through the dedicated file management screen
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 📞 Support
-
-For support and questions, please open an issue in the repository or contact the development team.
-
----
-
-**Built with ❤️ using Jetpack Compose and Clean Architecture**
 
